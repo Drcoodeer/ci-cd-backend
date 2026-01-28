@@ -84,14 +84,14 @@ jobs:
         working-directory: /home/dixit/ci-cd-backend
         run: |
           echo "🛑 Stopping old container..."
-          docker-compose down || true
+          docker compose down || true
           echo "✅ Old container stopped"
       
       - name: Start new container
         working-directory: /home/dixit/ci-cd-backend
         run: |
           echo "🚀 Starting new container..."
-          docker-compose up -d
+          docker compose up -d
           echo "✅ Container started successfully"
       
       - name: Check container health
@@ -100,12 +100,12 @@ jobs:
           echo "🔍 Waiting for container to be healthy..."
           sleep 5
           
-          if docker-compose ps | grep -q "Up"; then
+          if docker compose ps | grep -q "Up"; then
             echo "✅ Container is running"
-            docker-compose ps
+            docker compose ps
           else
             echo "❌ Container failed to start"
-            docker-compose logs
+            docker compose logs
             exit 1
           fi
       
