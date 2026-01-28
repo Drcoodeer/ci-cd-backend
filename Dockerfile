@@ -13,6 +13,9 @@ RUN npm ci --omit=dev
 # Copy built dist folder
 COPY dist ./dist
 
+# Copy version.txt
+COPY version.txt ./
+
 # Copy .env.example as reference
 COPY .env.example ./
 

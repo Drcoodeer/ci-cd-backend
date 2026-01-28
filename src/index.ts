@@ -1,5 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +36,7 @@ app.get('/', (req: Request, res: Response) => {
         version: API_VERSION,
         endpoints: {
             health: '/health',
+            version: '/version',
             api: `/${API_VERSION}`,
         },
     });
@@ -45,6 +48,25 @@ app.get(`/${API_VERSION}`, (req: Request, res: Response) => {
         message: `${APP_NAME} API ${API_VERSION}`,
         status: 'active',
     });
+});
+
+// Version endpoint - reads from version.txt
+app.get('/version', (req: Request, res: Response) => {
+    try {
+        const versionFilePath = path.join(__dirname, '../version.txt');
+        const version = fs.readFileSync(versionFilePath, 'utf-8').trim();
+
+        res.status(200).json({
+            version: version,
+            appName: APP_NAME,
+            timestamp: new Date().toISOString(),
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: 'Unable to read version file',
+            message: 'version.txt not found or unreadable',
+        });
+    }
 });
 
 // 404 handler

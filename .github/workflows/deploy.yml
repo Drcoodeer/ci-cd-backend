@@ -36,6 +36,7 @@ jobs:
             docker-compose.yml
             .env.example
             .dockerignore
+            version.txt
           retention-days: 1
 
   deploy:
