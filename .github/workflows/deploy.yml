@@ -1,0 +1,129 @@
+name: Build and Deploy with Self-Hosted Runner
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build TypeScript
+        run: npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            package*.json
+            Dockerfile
+            docker-compose.yml
+            .env.example
+            .dockerignore
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: /tmp/build-artifacts
+      
+      - name: Copy files to deployment directory
+        run: |
+          echo "📦 Copying files to /home/dixit/ci-cd-backend..."
+          mkdir -p /home/dixit/ci-cd-backend
+          
+          # Copy all files from artifacts
+          cp -r /tmp/build-artifacts/* /home/dixit/ci-cd-backend/
+          
+          # Cleanup temp artifacts
+          rm -rf /tmp/build-artifacts
+          
+          echo "✅ Files copied successfully"
+      
+      - name: Check for .env file
+        run: |
+          if [ ! -f /home/dixit/ci-cd-backend/.env ]; then
+            echo "⚠️  WARNING: .env file not found!"
+            echo "📝 Creating .env from .env.example..."
+            cp /home/dixit/ci-cd-backend/.env.example /home/dixit/ci-cd-backend/.env
+            echo "⚠️  Please update /home/dixit/ci-cd-backend/.env with your production values!"
+          else
+            echo "✅ .env file found"
+          fi
+      
+      - name: Build Docker image
+        working-directory: /home/dixit/ci-cd-backend
+        run: |
+          echo "🐳 Building Docker image..."
+          docker-compose build
+          echo "✅ Docker image built successfully"
+      
+      - name: Stop and remove old container
+        working-directory: /home/dixit/ci-cd-backend
+        run: |
+          echo "🛑 Stopping old container..."
+          docker-compose down || true
+          echo "✅ Old container stopped"
+      
+      - name: Start new container
+        working-directory: /home/dixit/ci-cd-backend
+        run: |
+          echo "🚀 Starting new container..."
+          docker-compose up -d
+          echo "✅ Container started successfully"
+      
+      - name: Check container health
+        working-directory: /home/dixit/ci-cd-backend
+        run: |
+          echo "🔍 Waiting for container to be healthy..."
+          sleep 5
+          
+          if docker-compose ps | grep -q "Up"; then
+            echo "✅ Container is running"
+            docker-compose ps
+          else
+            echo "❌ Container failed to start"
+            docker-compose logs
+            exit 1
+          fi
+      
+      - name: Cleanup old images
+        run: |
+          echo "🧹 Cleaning up old Docker images..."
+          docker image prune -f
+          echo "✅ Cleanup complete"
+      
+      - name: Deployment summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ Deployment completed successfully!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📍 Deployment path: /home/dixit/ci-cd-backend"
+          echo "🐳 Container name: ci-cd-backend"
+          echo "🌐 Health check: http://localhost:3000/health"
+          echo "🏗️  Built on: GitHub VM"
+          echo "🚀 Deployed on: Self-hosted runner"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+

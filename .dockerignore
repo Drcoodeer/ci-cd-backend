@@ -1,0 +1,42 @@
+# Docker-specific ignores
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Development files
+node_modules
+src
+*.ts
+tsconfig.json
+nodemon.json
+
+# Git
+.git
+.gitignore
+.github
+
+# Environment
+.env
+.env.example
+
+# Documentation
+README.md
+*.md
+
+# Build artifacts (keep only dist)
+# dist folder will be copied
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
