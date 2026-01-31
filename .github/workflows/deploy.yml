@@ -34,7 +34,6 @@ jobs:
             package*.json
             Dockerfile
             docker-compose.yml
-            .env.example
             .dockerignore
             version.txt
           retention-days: 1
@@ -63,15 +62,13 @@ jobs:
           
           echo "✅ Files copied successfully"
       
-      - name: Check for .env file
+      - name: Verify .env file exists
         run: |
           if [ ! -f /home/dixit/ci-cd-backend/.env ]; then
-            echo "⚠️  WARNING: .env file not found!"
-            echo "📝 Creating .env from .env.example..."
-            cp /home/dixit/ci-cd-backend/.env.example /home/dixit/ci-cd-backend/.env
-            echo "⚠️  Please update /home/dixit/ci-cd-backend/.env with your production values!"
+            echo "❌ ERROR: .env file not found on server!"
+            exit 1
           else
-            echo "✅ .env file found"
+            echo "✅ .env file found on server"
           fi
       
       - name: Build Docker image

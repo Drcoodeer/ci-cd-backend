@@ -19,10 +19,10 @@ app.use(express.urlencoded({ extended: true }));
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
     res.status(200).json({
+        environment: NODE_ENV,
         status: 'OK',
         message: 'Server is running',
         timestamp: new Date().toISOString(),
-        environment: NODE_ENV,
         appName: APP_NAME,
         apiVersion: API_VERSION,
         uptime: process.uptime(),

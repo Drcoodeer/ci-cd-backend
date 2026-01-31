@@ -16,9 +16,6 @@ COPY dist ./dist
 # Copy version.txt
 COPY version.txt ./
 
-# Copy .env.example as reference
-COPY .env.example ./
-
 # Expose port (will be overridden by .env)
 EXPOSE 3000
 
